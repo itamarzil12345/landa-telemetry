@@ -60,4 +60,26 @@ app.MapGet("/api/health", async (IConnectionMultiplexer redis, TelemetryStore.Te
 app.MapHub<TelemetryHub>(RestApiConstants.HubPath);
 app.MapSystemEventsStream();
 
+app.MapPost("/api/admin/reset", async (IConnectionMultiplexer redis, TelemetryStore.TelemetryStoreClient grpc, SystemEventBus bus) =>
+{
+    var deletedKeys = 0;
+    foreach (var sensorId in RestApiConstants.SensorIds)
+    {
+        if (await redis.GetDatabase().KeyDeleteAsync($"sensor:{sensorId}"))
+        {
+            deletedKeys++;
+        }
+    }
+
+    var clearReply = await grpc.ClearTelemetryAsync(new ClearTelemetryRequest());
+
+    bus.Publish(new SystemEvent(RestApiConstants.SourceRestApi, RestApiConstants.TargetRedis, "reset", null, RestApiConstants.LevelWarn, $"cleared {deletedKeys} cache keys, {clearReply.DeletedRows} sql rows"));
+
+    return Results.Ok(new
+    {
+        redisKeysDeleted = deletedKeys,
+        sqlRowsDeleted = clearReply.DeletedRows
+    });
+});
+
 app.Run();

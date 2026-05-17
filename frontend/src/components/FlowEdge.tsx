@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   BaseEdge,
   getSmoothStepPath,
@@ -6,10 +6,98 @@ import {
 } from "@xyflow/react";
 import { PARTICLE_DURATION_MS, type Particle } from "@/hooks/useSystemEvents";
 
-const DUR_SEC = (PARTICLE_DURATION_MS / 1000).toFixed(3);
+type EdgeKind = "data" | "trigger";
+
+function packetLabel(sensorId: string | null, kind: EdgeKind) {
+  if (!sensorId) return null;
+  const suffix = sensorId.replace(/^sensor-/, "");
+  return kind === "trigger" ? `notify-${suffix}` : `pkt-${suffix}`;
+}
+
+function ParticleSvg({
+  p,
+  pathD,
+  kind,
+}: {
+  p: Particle;
+  pathD: string;
+  kind: EdgeKind;
+}) {
+  const pathElRef = useRef<SVGPathElement | null>(null);
+  const lastPathDRef = useRef<string | null>(null);
+  if (!pathElRef.current || lastPathDRef.current !== pathD) {
+    const el = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path",
+    );
+    el.setAttribute("d", pathD);
+    pathElRef.current = el;
+    lastPathDRef.current = pathD;
+  }
+
+  const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    let raf = 0;
+    let alive = true;
+    const tick = () => {
+      if (!alive) return;
+      const elapsed = Date.now() - p.startedAt;
+      if (elapsed < 0) {
+        setCoords(null);
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+      if (elapsed >= PARTICLE_DURATION_MS) {
+        setCoords(null);
+        return;
+      }
+      const progress = elapsed / PARTICLE_DURATION_MS;
+      const len = pathElRef.current!.getTotalLength();
+      const pt = pathElRef.current!.getPointAtLength(len * progress);
+      setCoords({ x: pt.x, y: pt.y });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => {
+      alive = false;
+      cancelAnimationFrame(raf);
+    };
+  }, [p.id, p.startedAt]);
+
+  if (!coords) return null;
+  const label = packetLabel(p.sensorId, kind);
+  const isTrigger = kind === "trigger";
+  return (
+    <g>
+      <circle
+        cx={coords.x}
+        cy={coords.y}
+        r={isTrigger ? 3.5 : 6}
+        fill={isTrigger ? "var(--muted-foreground)" : "var(--primary)"}
+        opacity={isTrigger ? 0.85 : 1}
+        style={{
+          filter: isTrigger ? undefined : "drop-shadow(0 0 8px var(--primary))",
+        }}
+      />
+      {label && !isTrigger && (
+        <text
+          x={coords.x}
+          y={coords.y - 12}
+          fontSize={10}
+          fontFamily="ui-monospace, monospace"
+          fill="var(--primary)"
+          textAnchor="middle"
+        >
+          {label}
+        </text>
+      )}
+    </g>
+  );
+}
 
 export function FlowEdge(props: EdgeProps) {
-  const [path] = getSmoothStepPath({
+  const [path, labelX, labelY] = getSmoothStepPath({
     sourceX: props.sourceX,
     sourceY: props.sourceY,
     targetX: props.targetX,
@@ -19,26 +107,13 @@ export function FlowEdge(props: EdgeProps) {
     borderRadius: 18,
   });
 
-  const data = props.data as { particles?: Particle[] } | undefined;
+  const data = props.data as
+    | { particles?: Particle[]; kind?: EdgeKind; label?: string }
+    | undefined;
   const particles = data?.particles ?? [];
-
-  // Pin animation begin time per particle so re-renders don't restart SMIL.
-  const beginRef = useRef<Map<string, string>>(new Map());
-  useEffect(() => {
-    const ids = new Set(particles.map((p) => p.id));
-    for (const id of [...beginRef.current.keys()]) {
-      if (!ids.has(id)) beginRef.current.delete(id);
-    }
-  }, [particles]);
-  const getBegin = (p: Particle) => {
-    let begin = beginRef.current.get(p.id);
-    if (begin === undefined) {
-      const elapsedSec = (Date.now() - p.startedAt) / 1000;
-      begin = `${(-elapsedSec).toFixed(3)}s`;
-      beginRef.current.set(p.id, begin);
-    }
-    return begin;
-  };
+  const kind: EdgeKind = data?.kind ?? "data";
+  const edgeLabel = data?.label;
+  const isTrigger = kind === "trigger";
 
   return (
     <>
@@ -46,54 +121,38 @@ export function FlowEdge(props: EdgeProps) {
         id={props.id}
         path={path}
         style={{
-          stroke: "var(--muted-foreground)",
-          strokeWidth: 1.6,
-          strokeOpacity: 0.45,
+          stroke: isTrigger ? "var(--muted-foreground)" : "var(--muted-foreground)",
+          strokeWidth: isTrigger ? 1.2 : 1.6,
+          strokeOpacity: isTrigger ? 0.4 : 0.55,
+          strokeDasharray: isTrigger ? "5 4" : undefined,
         }}
       />
-      {particles.map((p) => {
-        const begin = getBegin(p);
-        const packetLabel = p.sensorId
-          ? `pkt-${p.sensorId.replace(/^sensor-/, "")}`
-          : null;
-        return (
-          <g key={p.id}>
-            <circle
-              r={6}
-              fill="var(--primary)"
-              style={{ filter: "drop-shadow(0 0 8px var(--primary))" }}
-            >
-              <animateMotion
-                dur={`${DUR_SEC}s`}
-                begin={begin}
-                repeatCount="1"
-                fill="freeze"
-              >
-                <mpath href={`#${props.id}`} />
-              </animateMotion>
-            </circle>
-            {packetLabel && (
-              <text
-                fontSize={10}
-                fontFamily="ui-monospace, monospace"
-                fill="var(--primary)"
-                textAnchor="middle"
-                dy={-12}
-              >
-                {packetLabel}
-                <animateMotion
-                  dur={`${DUR_SEC}s`}
-                  begin={begin}
-                  repeatCount="1"
-                  fill="freeze"
-                >
-                  <mpath href={`#${props.id}`} />
-                </animateMotion>
-              </text>
-            )}
-          </g>
-        );
-      })}
+      {edgeLabel && (
+        <g transform={`translate(${labelX}, ${labelY})`}>
+          <rect
+            x={-(edgeLabel.length * 3.4 + 6)}
+            y={-8}
+            width={edgeLabel.length * 6.8 + 12}
+            height={16}
+            rx={8}
+            fill="var(--background)"
+            stroke="var(--border)"
+            strokeWidth={1}
+          />
+          <text
+            fontSize={10}
+            fontFamily="ui-monospace, monospace"
+            fill={isTrigger ? "var(--muted-foreground)" : "var(--primary)"}
+            textAnchor="middle"
+            dominantBaseline="central"
+          >
+            {edgeLabel}
+          </text>
+        </g>
+      )}
+      {particles.map((p) => (
+        <ParticleSvg key={p.id} p={p} pathD={path} kind={kind} />
+      ))}
     </>
   );
 }

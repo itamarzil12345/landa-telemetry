@@ -6,8 +6,7 @@ export function ThemeSelector() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="mt-6 flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-muted-foreground">Theme:</span>
+    <div className="flex items-center gap-2">
       <Button
         size="sm"
         variant={theme === "light" ? "default" : "outline"}

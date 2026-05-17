@@ -6,6 +6,7 @@ package telemetry;
 service TelemetryStore {
   rpc SaveTelemetry (SaveTelemetryRequest) returns (SaveTelemetryReply);
   rpc GetSensorHistory (SensorHistoryRequest) returns (SensorHistoryReply);
+  rpc ClearTelemetry (ClearTelemetryRequest) returns (ClearTelemetryReply);
 }
 
 message TelemetryData {
@@ -29,4 +30,10 @@ message SensorHistoryRequest {
 
 message SensorHistoryReply {
   repeated TelemetryData items = 1;
+}
+
+message ClearTelemetryRequest {}
+
+message ClearTelemetryReply {
+  int32 deletedRows = 1;
 }

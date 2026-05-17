@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import {
   Background,
   BackgroundVariant,
-  Controls,
   MarkerType,
   ReactFlow,
   ReactFlowProvider,
@@ -24,7 +23,7 @@ interface Props {
 }
 
 function SystemFlowInner({ onNodeClick }: Props) {
-  const { particles, tracedSensorId } = useSystemEvents();
+  const { particles } = useSystemEvents();
   const focusedNodeId = useFocusedNode();
 
   const particlesByEdge = useMemo(() => {
@@ -64,7 +63,11 @@ function SystemFlowInner({ onNodeClick }: Props) {
         sourceHandle: e.sourceHandle,
         targetHandle: e.targetHandle,
         type: "flow",
-        data: { particles: particlesByEdge.get(e.id) ?? [] },
+        data: {
+          particles: particlesByEdge.get(e.id) ?? [],
+          kind: e.kind ?? "data",
+          label: e.label,
+        },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: "var(--border)",
@@ -77,11 +80,6 @@ function SystemFlowInner({ onNodeClick }: Props) {
 
   return (
     <div className="relative h-full w-full">
-      {tracedSensorId && (
-        <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-primary/40 bg-card/90 px-3 py-1 text-[11px] font-mono text-primary shadow-sm backdrop-blur-sm">
-          Tracing · pkt-{tracedSensorId.replace(/^sensor-/, "")} (from {tracedSensorId})
-        </div>
-      )}
       <ReactFlow
         nodes={decoratedNodes}
         edges={edges}
@@ -91,14 +89,16 @@ function SystemFlowInner({ onNodeClick }: Props) {
         fitViewOptions={{ padding: 0.2 }}
         minZoom={0.3}
         maxZoom={2.5}
-        onNodeClick={(_, node) => onNodeClick?.(node.id)}
+        onNodeClick={(_, node) => {
+          if (node.id === "frontend") return;
+          onNodeClick?.(node.id);
+        }}
         nodesDraggable
         nodesConnectable={false}
         elementsSelectable={false}
         proOptions={{ hideAttribution: true }}
       >
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--border)" />
-        <Controls showInteractive={false} className="!bg-card !border !border-border" />
       </ReactFlow>
     </div>
   );

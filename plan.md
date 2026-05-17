@@ -41,11 +41,14 @@ The system will consist of the following services:
 
 ## Communication & Data Flow
 
-- Telemetry originates in Redis from the IoT Telemetry service.
-- Backend services communicate only through gRPC and RabbitMQ.
-- The REST API service reads telemetry and pushes real-time updates to the UI via SignalR.
-- The UI uses REST only to fetch supporting data and subscribe to SignalR updates.
-- No polling will be used for telemetry updates.
+**As implemented (post-Redis refactor):**
+
+- Telemetry-service writes each reading to **Redis** (`HSET sensor:{id}`) AND publishes the full message on **RabbitMQ**.
+- The REST API service consumes the RabbitMQ message (the *trigger*, satisfying "no polling"), then **reads the actual value from Redis** (`HashGetAll`) to honor the spec's `Redis → API → UI` data path.
+- The REST API pushes that value to the UI via SignalR, and persists it to PostgreSQL via gRPC to the SQL service.
+- If the Redis read misses or fails, the REST API falls back to the RabbitMQ payload so the UI keeps updating.
+- The UI uses REST only for metadata (`/api/sensors`, `/api/sensors/{id}/history`, `/api/health`, `/api/admin/reset`) and SignalR for live updates.
+- Backend services communicate only through gRPC and RabbitMQ. Redis is shared infrastructure (cache), not a service-to-service messaging channel.
 
 ## Pages in UI
 

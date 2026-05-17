@@ -47,6 +47,8 @@ export const EVENT_KIND_TO_EDGE: Record<string, string[]> = {
 
 export const KIND_LABELS: Record<string, string> = {
   redis_write: "wrote to Redis",
+  redis_read: "read from Redis",
+  redis_read_miss: "Redis miss; using rabbit payload",
   rabbit_publish: "published to RabbitMQ",
   rabbit_consume: "consumed from RabbitMQ",
   signalr_push: "pushed to client via SignalR",

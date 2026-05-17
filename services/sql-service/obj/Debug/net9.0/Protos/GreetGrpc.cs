@@ -53,6 +53,10 @@ namespace sql_service {
     static readonly grpc::Marshaller<global::sql_service.SensorHistoryRequest> __Marshaller_telemetry_SensorHistoryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::sql_service.SensorHistoryRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::sql_service.SensorHistoryReply> __Marshaller_telemetry_SensorHistoryReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::sql_service.SensorHistoryReply.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::sql_service.ClearTelemetryRequest> __Marshaller_telemetry_ClearTelemetryRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::sql_service.ClearTelemetryRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::sql_service.ClearTelemetryReply> __Marshaller_telemetry_ClearTelemetryReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::sql_service.ClearTelemetryReply.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::sql_service.SaveTelemetryRequest, global::sql_service.SaveTelemetryReply> __Method_SaveTelemetry = new grpc::Method<global::sql_service.SaveTelemetryRequest, global::sql_service.SaveTelemetryReply>(
@@ -69,6 +73,14 @@ namespace sql_service {
         "GetSensorHistory",
         __Marshaller_telemetry_SensorHistoryRequest,
         __Marshaller_telemetry_SensorHistoryReply);
+
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::sql_service.ClearTelemetryRequest, global::sql_service.ClearTelemetryReply> __Method_ClearTelemetry = new grpc::Method<global::sql_service.ClearTelemetryRequest, global::sql_service.ClearTelemetryReply>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ClearTelemetry",
+        __Marshaller_telemetry_ClearTelemetryRequest,
+        __Marshaller_telemetry_ClearTelemetryReply);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
@@ -92,6 +104,12 @@ namespace sql_service {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
+      [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+      public virtual global::System.Threading.Tasks.Task<global::sql_service.ClearTelemetryReply> ClearTelemetry(global::sql_service.ClearTelemetryRequest request, grpc::ServerCallContext context)
+      {
+        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
+      }
+
     }
 
     /// <summary>Creates service definition that can be registered with a server</summary>
@@ -101,7 +119,8 @@ namespace sql_service {
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_SaveTelemetry, serviceImpl.SaveTelemetry)
-          .AddMethod(__Method_GetSensorHistory, serviceImpl.GetSensorHistory).Build();
+          .AddMethod(__Method_GetSensorHistory, serviceImpl.GetSensorHistory)
+          .AddMethod(__Method_ClearTelemetry, serviceImpl.ClearTelemetry).Build();
     }
 
     /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the service binding logic.
@@ -113,6 +132,7 @@ namespace sql_service {
     {
       serviceBinder.AddMethod(__Method_SaveTelemetry, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::sql_service.SaveTelemetryRequest, global::sql_service.SaveTelemetryReply>(serviceImpl.SaveTelemetry));
       serviceBinder.AddMethod(__Method_GetSensorHistory, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::sql_service.SensorHistoryRequest, global::sql_service.SensorHistoryReply>(serviceImpl.GetSensorHistory));
+      serviceBinder.AddMethod(__Method_ClearTelemetry, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::sql_service.ClearTelemetryRequest, global::sql_service.ClearTelemetryReply>(serviceImpl.ClearTelemetry));
     }
 
   }

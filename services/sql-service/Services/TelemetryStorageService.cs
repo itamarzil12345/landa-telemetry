@@ -45,4 +45,10 @@ public sealed class TelemetryStorageService : TelemetryStore.TelemetryStoreBase
 
         return reply;
     }
+
+    public override async Task<ClearTelemetryReply> ClearTelemetry(ClearTelemetryRequest request, ServerCallContext context)
+    {
+        var deleted = await _context.Telemetry.ExecuteDeleteAsync(context.CancellationToken);
+        return new ClearTelemetryReply { DeletedRows = deleted };
+    }
 }

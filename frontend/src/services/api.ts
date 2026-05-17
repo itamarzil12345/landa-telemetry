@@ -25,3 +25,19 @@ export async function fetchHealth(): Promise<HealthStatus> {
   const response = await fetch(`${API_BASE_URL}/api/health`, jsonOptions);
   return (await response.json()) as HealthStatus;
 }
+
+export interface ResetResult {
+  redisKeysDeleted: number;
+  sqlRowsDeleted: number;
+}
+
+export async function resetAllData(): Promise<ResetResult> {
+  const response = await fetch(`${API_BASE_URL}/api/admin/reset`, {
+    method: "POST",
+    ...jsonOptions,
+  });
+  if (!response.ok) {
+    throw new Error(`Reset failed: ${response.status}`);
+  }
+  return (await response.json()) as ResetResult;
+}

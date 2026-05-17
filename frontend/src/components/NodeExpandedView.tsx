@@ -1,158 +1,76 @@
-import { useMemo } from "react";
-import { useTelemetry } from "@/hooks/useTelemetry";
-import { useSystemEvents } from "@/hooks/useSystemEvents";
-import type { SystemEvent } from "@/model";
+import { useSystemEvents, type StoredRecord } from "@/hooks/useSystemEvents";
+import { SensorGrid } from "@/components/SensorGrid";
 
 function formatTime(ts: number) {
-  return new Date(ts).toLocaleTimeString(undefined, { hour12: false });
+  const d = new Date(ts);
+  return (
+    d.toLocaleTimeString(undefined, { hour12: false }) +
+    "." +
+    String(d.getMilliseconds()).padStart(3, "0").slice(0, 2)
+  );
 }
 
-function Shell({
+function RecordsTable({
   heading,
-  count,
-  children,
+  records,
 }: {
   heading: string;
-  count: number;
-  children: React.ReactNode;
+  records: StoredRecord[];
 }) {
   return (
-    <div className="mt-2 max-h-[180px] overflow-y-auto rounded-md bg-muted/30 p-1.5">
-      <div className="mb-1 text-[9px] uppercase tracking-wider text-muted-foreground">
-        {heading} · {count}
+    <div className="mt-2 max-h-[220px] overflow-y-auto rounded-md border border-border/40 bg-muted/30">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-muted/80 px-2 py-1 text-[9px] uppercase tracking-wider text-muted-foreground backdrop-blur-sm">
+        <span>{heading}</span>
+        <span className="tabular-nums">{records.length}</span>
       </div>
-      {children}
+      {records.length === 0 ? (
+        <div className="px-2 py-3 text-center text-[10px] text-muted-foreground">
+          waiting for first packet…
+        </div>
+      ) : (
+        <table className="w-full font-mono text-[10px]">
+          <thead className="text-[9px] uppercase text-muted-foreground/70">
+            <tr>
+              <th className="px-2 py-1 text-left font-normal">sensor</th>
+              <th className="px-2 py-1 text-right font-normal">value</th>
+              <th className="px-2 py-1 text-right font-normal">stored</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((r, idx) => (
+              <tr
+                key={`${r.storedAt}-${idx}`}
+                className="border-t border-border/20 hover:bg-background/40"
+              >
+                <td className="truncate px-2 py-0.5 text-foreground/80">
+                  {r.sensorId}
+                </td>
+                <td className="px-2 py-0.5 text-right tabular-nums text-primary">
+                  {r.value !== undefined ? r.value.toFixed(2) : "—"}
+                </td>
+                <td className="px-2 py-0.5 text-right tabular-nums text-muted-foreground">
+                  {formatTime(r.storedAt)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
 
-function EventList({ events }: { events: SystemEvent[] }) {
-  if (events.length === 0) {
-    return <div className="text-[10px] text-muted-foreground">no events</div>;
-  }
-  return (
-    <ul className="space-y-0.5 font-mono text-[10px]">
-      {events.map((e, idx) => (
-        <li
-          key={`${e.receivedAt}-${idx}`}
-          className="flex items-baseline gap-1.5 truncate rounded bg-background/60 px-1.5 py-0.5"
-        >
-          <span className="shrink-0 text-muted-foreground">
-            {formatTime(e.receivedAt)}
-          </span>
-          <span className="truncate text-foreground/80">
-            {e.kind}
-            {e.sensorId ? ` · ${e.sensorId}` : ""}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 export function NodeExpandedView({ nodeId }: { nodeId: string }) {
-  const { latest } = useTelemetry();
-  const { events } = useSystemEvents();
-
-  const filtered = useMemo(() => {
-    switch (nodeId) {
-      case "sensors":
-        return events.filter((e) => e.source === "sensors").slice(0, 8);
-      case "telemetry-service":
-        return events
-          .filter(
-            (e) =>
-              e.source === "telemetry-service" || e.target === "telemetry-service",
-          )
-          .slice(0, 8);
-      case "redis":
-        return events.filter((e) => e.kind === "redis_write").slice(0, 8);
-      case "rabbitmq":
-        return events
-          .filter(
-            (e) => e.kind === "rabbit_publish" || e.kind === "rabbit_consume",
-          )
-          .slice(0, 8);
-      case "rest-api":
-        return events
-          .filter((e) => e.source === "rest-api" || e.target === "rest-api")
-          .slice(0, 8);
-      case "sql-service":
-        return events
-          .filter(
-            (e) => e.source === "sql-service" || e.target === "sql-service",
-          )
-          .slice(0, 8);
-      case "postgres":
-        return events.filter((e) => e.kind === "postgres_write").slice(0, 8);
-      case "frontend":
-        return events.filter((e) => e.kind === "signalr_push").slice(0, 8);
-      default:
-        return events.slice(0, 8);
-    }
-  }, [events, nodeId]);
+  const { redisRecords, postgresRecords } = useSystemEvents();
 
   if (nodeId === "sensors") {
-    const values = Object.values(latest).sort((a, b) =>
-      a.sensorId.localeCompare(b.sensorId),
-    );
-    return (
-      <Shell heading="Current readings" count={values.length}>
-        <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
-          {values.map((v) => (
-            <div
-              key={v.sensorId}
-              className="flex items-center justify-between rounded bg-background/60 px-1.5 py-0.5"
-            >
-              <span className="text-muted-foreground">{v.sensorId}</span>
-              <span className="tabular-nums">{v.value.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
-      </Shell>
-    );
+    return <SensorGrid />;
   }
-
   if (nodeId === "redis") {
-    const values = Object.values(latest).sort((a, b) =>
-      a.sensorId.localeCompare(b.sensorId),
-    );
-    return (
-      <>
-        <Shell heading="Cached keys" count={values.length}>
-          <div className="grid grid-cols-2 gap-1 font-mono text-[10px]">
-            {values.slice(0, 12).map((v) => (
-              <div
-                key={v.sensorId}
-                className="flex items-center justify-between rounded bg-background/60 px-1.5 py-0.5"
-              >
-                <span className="text-muted-foreground truncate">
-                  sensor:{v.sensorId}
-                </span>
-                <span className="tabular-nums">{v.value.toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-        </Shell>
-        <Shell heading="Recent writes" count={filtered.length}>
-          <EventList events={filtered} />
-        </Shell>
-      </>
-    );
+    return <RecordsTable heading="cached rows" records={redisRecords} />;
   }
-
-  const labelByNode: Record<string, string> = {
-    "telemetry-service": "Recent emits",
-    rabbitmq: "Recent messages",
-    "rest-api": "Recent requests",
-    "sql-service": "Recent gRPC saves",
-    postgres: "Recent writes",
-    frontend: "Recent SignalR pushes",
-  };
-
-  return (
-    <Shell heading={labelByNode[nodeId] ?? "Recent activity"} count={filtered.length}>
-      <EventList events={filtered} />
-    </Shell>
-  );
+  if (nodeId === "postgres") {
+    return <RecordsTable heading="rows persisted" records={postgresRecords} />;
+  }
+  return null;
 }

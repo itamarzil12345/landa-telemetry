@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -22,6 +23,7 @@ interface TelemetryContextValue {
   latest: Record<string, TelemetryMessage>;
   history: Record<string, TelemetryMessage[]>;
   connection: ConnState;
+  reset: () => void;
 }
 
 const Ctx = createContext<TelemetryContextValue | null>(null);
@@ -80,9 +82,14 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const reset = useCallback(() => {
+    setLatest({});
+    setHistory({});
+  }, []);
+
   const value = useMemo(
-    () => ({ sensors, latest, history, connection }),
-    [sensors, latest, history, connection],
+    () => ({ sensors, latest, history, connection, reset }),
+    [sensors, latest, history, connection, reset],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

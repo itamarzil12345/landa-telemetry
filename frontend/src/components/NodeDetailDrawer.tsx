@@ -10,7 +10,6 @@ const SHOWS_LATEST = new Set([
   "sensors",
   "telemetry-service",
   "redis",
-  "frontend",
 ]);
 
 export function NodeDetailDrawer({

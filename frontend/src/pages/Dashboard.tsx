@@ -5,6 +5,7 @@ import { SystemFlowCard } from "@/components/SystemFlowCard";
 import { LogPanel } from "@/components/LogPanel";
 import { NodeDetailDrawer } from "@/components/NodeDetailDrawer";
 import { ThemeSelector } from "@/components/ThemeSelector";
+import { ResetDataButton } from "@/components/ResetDataButton";
 import { Tabs } from "@/components/common/tabs";
 import { SensorCard } from "@/components/SensorCard";
 import { useTelemetry } from "@/hooks/useTelemetry";
@@ -92,7 +93,12 @@ export default function Dashboard() {
       <Tabs
         tabs={tabs}
         defaultTabId="system-activity"
-        rightSlot={<ThemeSelector />}
+        rightSlot={
+          <div className="flex items-center gap-2">
+            <ResetDataButton />
+            <ThemeSelector />
+          </div>
+        }
       />
       {drawerNode && (
         <NodeDetailDrawer

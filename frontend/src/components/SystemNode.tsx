@@ -22,15 +22,15 @@ export function SystemNode({
   id: string;
   data: SystemNodeData;
 }) {
-  const expanded = data.focused === true;
+  const focused = data.focused === true;
+  const isWide = id === "redis" || id === "postgres" || id === "sensors";
   const Icon = data.icon;
   return (
     <div
       className={cn(
         "rounded-xl border border-border bg-card shadow-sm",
-        expanded
-          ? "min-w-[260px] px-3 py-3 ring-2 ring-primary/40"
-          : "min-w-[160px] px-3 py-2.5",
+        isWide ? "w-[280px] px-3 py-3" : "w-[180px] px-2.5 py-2",
+        focused && "ring-2 ring-primary/40",
       )}
     >
       <Handle type="target" position={Position.Left} id="left-in" className={handleClass} />
@@ -56,7 +56,7 @@ export function SystemNode({
         )}
       </div>
       <NodeLiveStat nodeId={id} />
-      {expanded && <NodeExpandedView nodeId={id} />}
+      <NodeExpandedView nodeId={id} />
     </div>
   );
 }
