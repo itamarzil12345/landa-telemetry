@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Pause, Play, Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/common/button";
 import { EventRow } from "@/components/EventRow";
 import { useSystemEvents } from "@/hooks/useSystemEvents";
 import { LABELS } from "@/constants";

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/common/card";
 import { Sparkline } from "@/components/Sparkline";
 import type { TelemetryMessage } from "@/model";
 

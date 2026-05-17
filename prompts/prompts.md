@@ -19,3 +19,7 @@
 - 1.the event stream - allow with full screen button to view it fully in much more detailed view,
 
 - the system activity live diagram - make it bigger and as the user zooms in nodes, like Rabiit or postgres or Redis - show the entire data points in each node, also allow full screen
+
+- zooming in nodes, like Redis for example opens and shows data of all nodes expanded, like rabbit and frontend, everything... but if the user only zooms in in Redis - only expand data of Redis
+- I dont see Redis node connected to any other nodes.. doesnt make sense
+- I expand that when a sensor is pushing new data, then in the diagram we will see it live (the movement from the telemetry of this piece of data and each phase of this data's journey (animate it on the lines of the diagram)

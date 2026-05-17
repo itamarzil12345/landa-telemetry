@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/common/card";
 import { DetailChart } from "@/components/DetailChart";
 import { fetchSensorHistory } from "@/services/api";
 import { useTelemetry } from "@/hooks/useTelemetry";

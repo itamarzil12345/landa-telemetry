@@ -81,11 +81,6 @@ body {
   background: oklch(from var(--primary) l c h / 0.3);
 }
 
-@keyframes flash-fresh {
-  0% { background-color: oklch(from var(--primary) l c h / 0.28); }
-  100% { background-color: oklch(from var(--primary) l c h / 0.08); }
-}
-
 @keyframes slide-in-right {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }

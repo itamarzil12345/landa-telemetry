@@ -1,6 +1,6 @@
 import { CheckCircle2, XCircle, type LucideIcon } from "lucide-react";
-import { Card, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader } from "@/components/common/card";
+import { Badge } from "@/components/common/badge";
 import { LABELS } from "@/constants";
 
 interface Props {

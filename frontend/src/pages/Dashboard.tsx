@@ -1,17 +1,12 @@
 import { useMemo, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { KpiRow } from "@/components/KpiRow";
-import { SensorCard } from "@/components/SensorCard";
 import { LiveActivityChart } from "@/components/LiveActivityChart";
 import { SystemFlowCard } from "@/components/SystemFlowCard";
 import { LogPanel } from "@/components/LogPanel";
 import { NodeDetailDrawer } from "@/components/NodeDetailDrawer";
+import { ThemeSelector } from "@/components/ThemeSelector";
+import { Tabs } from "@/components/common/tabs";
+import { SensorCard } from "@/components/SensorCard";
 import { useTelemetry } from "@/hooks/useTelemetry";
 import { LABELS } from "@/constants";
 
@@ -27,56 +22,78 @@ export default function Dashboard() {
     const buckets = new Map<number, number[]>();
     for (const arr of Object.values(history))
       for (const t of arr)
-        buckets.set(t.timestampUnix, [...(buckets.get(t.timestampUnix) ?? []), t.value]);
+        buckets.set(t.timestampUnix, [
+          ...(buckets.get(t.timestampUnix) ?? []),
+          t.value,
+        ]);
     return [...buckets.entries()]
       .sort(([a], [b]) => a - b)
       .slice(-30)
-      .map(([ts, vs]) => ({ ts, avg: vs.reduce((s, v) => s + v, 0) / vs.length }));
+      .map(([ts, vs]) => ({
+        ts,
+        avg: vs.reduce((s, v) => s + v, 0) / vs.length,
+      }));
   }, [history]);
 
-  return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {LABELS.overviewTitle}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {LABELS.overviewHint}
-        </p>
-      </header>
-
-      <KpiRow total={sensors.length} active={active} avg={avg} peak={max} />
-
-      <SystemFlowCard onNodeClick={setDrawerNode} />
-
-      <div className="h-[360px]">
-        <LogPanel />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{LABELS.liveActivity}</CardTitle>
-          <CardDescription>{LABELS.liveActivityHint}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LiveActivityChart data={aggregate} />
-        </CardContent>
-      </Card>
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">{LABELS.sensorsHeading}</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          {sensors.map((id) => (
-            <SensorCard
-              key={id}
-              sensorId={id}
-              current={latest[id]}
-              history={history[id] ?? []}
-            />
-          ))}
+  const tabs = [
+    {
+      id: "system-activity",
+      label: "System Activity",
+      content: (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <SystemFlowCard onNodeClick={setDrawerNode} height="h-full" />
         </div>
-      </section>
+      ),
+    },
+    {
+      id: "event-stream",
+      label: "Event Stream",
+      content: (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <LogPanel />
+        </div>
+      ),
+    },
+    {
+      id: "live-activity",
+      label: "Live Activity",
+      content: (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-1">
+          <KpiRow total={sensors.length} active={active} avg={avg} peak={max} />
+          <div className="rounded-xl border bg-card p-4">
+            <p className="mb-1 text-sm font-semibold">{LABELS.liveActivity}</p>
+            <p className="mb-3 text-xs text-muted-foreground">
+              {LABELS.liveActivityHint}
+            </p>
+            <LiveActivityChart data={aggregate} />
+          </div>
+          <div>
+            <h2 className="mb-2 text-sm font-semibold">
+              {LABELS.sensorsHeading}
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+              {sensors.map((id) => (
+                <SensorCard
+                  key={id}
+                  sensorId={id}
+                  current={latest[id]}
+                  history={history[id] ?? []}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
 
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Tabs
+        tabs={tabs}
+        defaultTabId="system-activity"
+        rightSlot={<ThemeSelector />}
+      />
       {drawerNode && (
         <NodeDetailDrawer
           nodeId={drawerNode}

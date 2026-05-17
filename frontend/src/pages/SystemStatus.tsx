@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Cpu, Database, Network, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/common/button";
+import { Skeleton } from "@/components/common/skeleton";
 import { HealthCard } from "@/components/HealthCard";
 import { fetchHealth } from "@/services/api";
 import { COMPONENT_INFO, LABELS } from "@/constants";

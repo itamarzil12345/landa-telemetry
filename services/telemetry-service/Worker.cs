@@ -27,9 +27,10 @@ public sealed class Worker : BackgroundService
         await SystemEventPublisher.DeclareAsync(channel, stoppingToken);
 
         var idList = TelemetryConstants.SensorIds;
+        var rng = new Random();
         while (!stoppingToken.IsCancellationRequested)
         {
-            foreach (var sensorId in idList)
+            foreach (var sensorId in idList.OrderBy(_ => rng.Next()))
             {
                 var telemetry = new TelemetryMessage(sensorId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), GetSensorValue(sensorId));
                 var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(telemetry));

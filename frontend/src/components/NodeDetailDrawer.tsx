@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/common/button";
 import { EventRow } from "@/components/EventRow";
 import { NODES } from "@/components/systemTopology";
 import { useSystemEvents } from "@/hooks/useSystemEvents";

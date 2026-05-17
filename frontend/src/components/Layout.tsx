@@ -67,9 +67,11 @@ export default function Layout() {
           <ConnectionDot />
         </div>
       </aside>
-      <main className="overflow-y-auto">
-        <div className="mx-auto max-w-7xl px-8 py-8">
-          <Outlet />
+      <main className="flex h-screen flex-col overflow-hidden">
+        <div className="flex min-h-0 w-full flex-1 flex-col px-4 py-4">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

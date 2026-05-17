@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/common/badge";
 import { KIND_LABELS } from "@/constants";
 import type { SystemEvent } from "@/model";
 
@@ -30,9 +30,7 @@ export function EventRow({ event, fresh, compact = true }: Props) {
   const baseLi = cn(
     "flex items-baseline gap-2 border-l-2",
     compact ? "px-3 py-1.5 text-[11px]" : "px-4 py-2.5 text-[13px]",
-    fresh
-      ? "border-primary bg-primary/8 [animation:flash-fresh_900ms_ease-out]"
-      : "border-transparent",
+    fresh ? "border-primary/60" : "border-transparent",
   );
 
   if (compact) {

@@ -5,6 +5,7 @@ import {
   Controls,
   MarkerType,
   ReactFlow,
+  ReactFlowProvider,
   type Edge,
   type Node,
 } from "@xyflow/react";
@@ -13,6 +14,7 @@ import { SystemNode, type SystemNodeData } from "@/components/SystemNode";
 import { FlowEdge } from "@/components/FlowEdge";
 import { EDGES, NODES } from "@/components/systemTopology";
 import { useSystemEvents } from "@/hooks/useSystemEvents";
+import { useFocusedNode } from "@/hooks/useFocusedNode";
 
 const nodeTypes = { system: SystemNode };
 const edgeTypes = { flow: FlowEdge };
@@ -21,28 +23,37 @@ interface Props {
   onNodeClick?: (nodeId: string) => void;
 }
 
-export function SystemFlow({ onNodeClick }: Props) {
-  const { activeEdges } = useSystemEvents();
+function SystemFlowInner({ onNodeClick }: Props) {
+  const { particles, tracedSensorId } = useSystemEvents();
+  const focusedNodeId = useFocusedNode();
 
-  const nodes: Node<SystemNodeData>[] = useMemo(
+  const particlesByEdge = useMemo(() => {
+    const map = new Map<string, typeof particles>();
+    for (const p of particles) {
+      const arr = map.get(p.edgeId) ?? [];
+      arr.push(p);
+      map.set(p.edgeId, arr);
+    }
+    return map;
+  }, [particles]);
+
+  const decoratedNodes: Node<SystemNodeData>[] = useMemo(
     () =>
       NODES.map((n) => ({
         id: n.id,
         type: "system",
         position: { x: n.x, y: n.y },
-        data: { label: n.label, caption: n.caption, icon: n.icon, badge: n.badge, active: false },
-        draggable: false,
+        data: {
+          label: n.label,
+          caption: n.caption,
+          icon: n.icon,
+          badge: n.badge,
+          active: false,
+          focused: n.id === focusedNodeId,
+        },
       })),
-    [],
+    [focusedNodeId],
   );
-
-  const decoratedNodes = nodes.map((n) => ({
-    ...n,
-    data: {
-      ...n.data,
-      active: [...activeEdges].some((e) => e.startsWith(`${n.id}->`) || e.endsWith(`->${n.id}`)),
-    },
-  }));
 
   const edges: Edge[] = useMemo(
     () =>
@@ -53,42 +64,52 @@ export function SystemFlow({ onNodeClick }: Props) {
         sourceHandle: e.sourceHandle,
         targetHandle: e.targetHandle,
         type: "flow",
-        data: { active: activeEdges.has(e.id) },
+        data: { particles: particlesByEdge.get(e.id) ?? [] },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: activeEdges.has(e.id) ? "var(--primary)" : "var(--border)",
+          color: "var(--border)",
           width: 14,
           height: 14,
         },
       })),
-    [activeEdges],
+    [particlesByEdge],
   );
 
   return (
-    <div className="h-full min-h-[440px] w-full">
+    <div className="relative h-full w-full">
+      {tracedSensorId && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full border border-primary/40 bg-card/90 px-3 py-1 text-[11px] font-mono text-primary shadow-sm backdrop-blur-sm">
+          Tracing · pkt-{tracedSensorId.replace(/^sensor-/, "")} (from {tracedSensorId})
+        </div>
+      )}
       <ReactFlow
         nodes={decoratedNodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
-        fitViewOptions={{ padding: 0.18 }}
-        minZoom={0.4}
+        fitViewOptions={{ padding: 0.2 }}
+        minZoom={0.3}
         maxZoom={2.5}
         onNodeClick={(_, node) => onNodeClick?.(node.id)}
-        nodesDraggable={false}
+        nodesDraggable
         nodesConnectable={false}
         elementsSelectable={false}
         proOptions={{ hideAttribution: true }}
       >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={18}
-          size={1}
-          color="var(--border)"
-        />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--border)" />
         <Controls showInteractive={false} className="!bg-card !border !border-border" />
       </ReactFlow>
+    </div>
+  );
+}
+
+export function SystemFlow({ onNodeClick }: Props) {
+  return (
+    <div className="h-full w-full">
+      <ReactFlowProvider>
+        <SystemFlowInner onNodeClick={onNodeClick} />
+      </ReactFlowProvider>
     </div>
   );
 }

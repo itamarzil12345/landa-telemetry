@@ -5,8 +5,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/components/common/card";
+import { Button } from "@/components/common/button";
 import { EventRow } from "@/components/EventRow";
 import { LogPanelModal } from "@/components/LogPanelModal";
 import { LABELS } from "@/constants";
