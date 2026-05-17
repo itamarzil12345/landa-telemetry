@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 23
+
+      - name: Restore .NET dependencies
+        run: dotnet restore IndustrialRealTime.sln
+
+      - name: Build .NET solution
+        run: dotnet build IndustrialRealTime.sln --configuration Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test IndustrialRealTime.sln --configuration Release --no-restore
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Validate Docker Compose
+        run: docker compose -f docker-compose.yml config
+
+      - name: Build Docker images
+        run: docker compose -f docker-compose.yml build

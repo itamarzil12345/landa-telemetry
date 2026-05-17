@@ -1,0 +1,164 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/itamarsilverstein/dev/landa/tests/telemetry/tests.telemetry.csproj": {}
+  },
+  "projects": {
+    "/Users/itamarsilverstein/dev/landa/services/telemetry-service/telemetry-service.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/itamarsilverstein/dev/landa/services/telemetry-service/telemetry-service.csproj",
+        "projectName": "telemetry-service",
+        "projectPath": "/Users/itamarsilverstein/dev/landa/services/telemetry-service/telemetry-service.csproj",
+        "packagesPath": "/Users/itamarsilverstein/.nuget/packages/",
+        "outputPath": "/Users/itamarsilverstein/dev/landa/services/telemetry-service/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/itamarsilverstein/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "/opt/homebrew/Cellar/dotnet/9.0.7/libexec/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "RabbitMQ.Client": {
+              "target": "Package",
+              "version": "[7.2.1, )"
+            },
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[2.10.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.7/libexec/sdk/9.0.108/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/itamarsilverstein/dev/landa/tests/telemetry/tests.telemetry.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/itamarsilverstein/dev/landa/tests/telemetry/tests.telemetry.csproj",
+        "projectName": "tests.telemetry",
+        "projectPath": "/Users/itamarsilverstein/dev/landa/tests/telemetry/tests.telemetry.csproj",
+        "packagesPath": "/Users/itamarsilverstein/.nuget/packages/",
+        "outputPath": "/Users/itamarsilverstein/dev/landa/tests/telemetry/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/itamarsilverstein/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "/opt/homebrew/Cellar/dotnet/9.0.7/libexec/library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "/Users/itamarsilverstein/dev/landa/services/telemetry-service/telemetry-service.csproj": {
+                "projectPath": "/Users/itamarsilverstein/dev/landa/services/telemetry-service/telemetry-service.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.12.0, )"
+            },
+            "coverlet.collector": {
+              "target": "Package",
+              "version": "[6.0.2, )"
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.9.2, )"
+            },
+            "xunit.runner.visualstudio": {
+              "target": "Package",
+              "version": "[2.8.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.7/libexec/sdk/9.0.108/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

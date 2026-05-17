@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rest-api", "services\rest-api\rest-api.csproj", "{593DFC52-4B26-4BEB-B556-DBF16E1540ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sql-service", "services\sql-service\sql-service.csproj", "{9E20AE4F-51DE-48A2-A2FD-FA03958C1C45}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "telemetry-service", "services\telemetry-service\telemetry-service.csproj", "{08BB4849-EA74-4ADE-9EC6-7E7478937D1F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests.restapi", "tests\restapi\tests.restapi.csproj", "{842A02DC-CD9D-4D25-BD7B-0EE1DE8F1385}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests.sqlservice", "tests\sqlservice\tests.sqlservice.csproj", "{D807A990-A426-4A72-9674-67C5ABE0ADCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests.telemetry", "tests\telemetry\tests.telemetry.csproj", "{5DC6F234-00AD-4A41-B8DB-E9BB36E2599B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{593DFC52-4B26-4BEB-B556-DBF16E1540ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{593DFC52-4B26-4BEB-B556-DBF16E1540ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{593DFC52-4B26-4BEB-B556-DBF16E1540ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{593DFC52-4B26-4BEB-B556-DBF16E1540ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E20AE4F-51DE-48A2-A2FD-FA03958C1C45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E20AE4F-51DE-48A2-A2FD-FA03958C1C45}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E20AE4F-51DE-48A2-A2FD-FA03958C1C45}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E20AE4F-51DE-48A2-A2FD-FA03958C1C45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08BB4849-EA74-4ADE-9EC6-7E7478937D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08BB4849-EA74-4ADE-9EC6-7E7478937D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08BB4849-EA74-4ADE-9EC6-7E7478937D1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08BB4849-EA74-4ADE-9EC6-7E7478937D1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{842A02DC-CD9D-4D25-BD7B-0EE1DE8F1385}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{842A02DC-CD9D-4D25-BD7B-0EE1DE8F1385}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{842A02DC-CD9D-4D25-BD7B-0EE1DE8F1385}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{842A02DC-CD9D-4D25-BD7B-0EE1DE8F1385}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D807A990-A426-4A72-9674-67C5ABE0ADCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D807A990-A426-4A72-9674-67C5ABE0ADCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D807A990-A426-4A72-9674-67C5ABE0ADCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D807A990-A426-4A72-9674-67C5ABE0ADCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DC6F234-00AD-4A41-B8DB-E9BB36E2599B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DC6F234-00AD-4A41-B8DB-E9BB36E2599B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DC6F234-00AD-4A41-B8DB-E9BB36E2599B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DC6F234-00AD-4A41-B8DB-E9BB36E2599B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+

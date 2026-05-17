@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option csharp_namespace = "sql_service";
+package telemetry;
+
+service TelemetryStore {
+  rpc SaveTelemetry (SaveTelemetryRequest) returns (SaveTelemetryReply);
+  rpc GetSensorHistory (SensorHistoryRequest) returns (SensorHistoryReply);
+}
+
+message TelemetryData {
+  string sensorId = 1;
+  int64 timestampUnix = 2;
+  double value = 3;
+}
+
+message SaveTelemetryRequest {
+  TelemetryData telemetry = 1;
+}
+
+message SaveTelemetryReply {
+  bool success = 1;
+}
+
+message SensorHistoryRequest {
+  string sensorId = 1;
+  int32 limit = 2;
+}
+
+message SensorHistoryReply {
+  repeated TelemetryData items = 1;
+}

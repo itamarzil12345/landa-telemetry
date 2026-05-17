@@ -1,0 +1,74 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: press
+    ports:
+      - "5432:5432"
+
+  sql-service:
+    build:
+      context: .
+      dockerfile: services/sql-service/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:5000
+      Database__ConnectionString: Host=postgres;Database=press;Username=postgres;Password=postgres
+    depends_on:
+      - postgres
+    ports:
+      - "5400:5000"
+
+  rest-api:
+    build:
+      context: .
+      dockerfile: services/rest-api/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:5100
+      SqlService__Url: http://sql-service:5000
+      Redis__Connection: redis:6379
+      RabbitMq__Url: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - sql-service
+      - rabbitmq
+      - redis
+    ports:
+      - "5100:5100"
+
+  telemetry-service:
+    build:
+      context: .
+      dockerfile: services/telemetry-service/Dockerfile
+    environment:
+      Redis__Connection: redis:6379
+      RabbitMq__Url: amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - rabbitmq
+      - redis
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      VITE_API_BASE_URL: http://localhost:5100
+    ports:
+      - "4173:4173"
+    depends_on:
+      - rest-api
