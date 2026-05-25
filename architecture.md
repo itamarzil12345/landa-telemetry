@@ -11,26 +11,44 @@ Distributed industrial real-time telemetry platform meeting the assignment requi
 - Uses Server-Sent Events (`/api/events/stream`) for the operational event log shown in the System Activity tab. This is observability metadata, not telemetry data.
 
 ### REST API service (`services/rest-api/`, C# / .NET 9)
-- Hosts the SignalR `TelemetryHub`.
+- Hosts the SignalR `TelemetryHub` at `/telemetryHub`, broadcasting the `TelemetryUpdate` event.
 - `RabbitMqTelemetryListener` consumes the `telemetry` queue. On each message: extracts `sensorId`, **reads** `sensor:{sensorId}` from Redis, pushes the result to SignalR, and persists it to sql-service over gRPC. Falls back to the rabbit payload if the Redis read fails.
-- `SystemEventBus` + `SystemEventsListener` collect operational events (`redis_write`, `rabbit_publish`, `rabbit_consume`, `redis_read`, `redis_read_miss`, `signalr_push`, `grpc_save`, `postgres_write`) and re-broadcast them over SSE for the System Activity tab.
-- `POST /api/admin/reset` clears all `sensor:*` Redis keys and calls `ClearTelemetry` over gRPC.
+- `SystemEventsListener` binds an exclusive queue to the `system.events` fanout exchange and forwards every published operational event into the in-process `SystemEventBus`. `SystemEventBus` then fans those events out to any HTTP client subscribed to the SSE endpoint. Event kinds observed in the wild: `redis_write`, `rabbit_publish`, `rabbit_consume`, `redis_read`, `redis_read_miss`, `signalr_push`, `grpc_save`, `postgres_write`, and `reset`.
+- REST endpoints exposed to the UI: `GET /api/sensors`, `GET /api/sensors/{id}/history`, `GET /api/health`, `POST /api/admin/reset`, plus the SSE stream at `GET /api/events/stream`.
+- `POST /api/admin/reset` iterates the 20 known sensor IDs and `KeyDeleteAsync("sensor:{id}")` on Redis (it does **not** issue a wildcard / `FLUSHDB`), then calls `ClearTelemetry` over gRPC to truncate the SQL table.
 
 ### SQL Data service (`services/sql-service/`, C# / EF Core / gRPC)
-- gRPC service: `SaveTelemetry`, `GetSensorHistory`, `ClearTelemetry`.
+- gRPC service `TelemetryStore` (defined in `Protos/greet.proto` — name is a leftover from `dotnet new grpc` scaffolding; service inside is correctly named): `SaveTelemetry`, `GetSensorHistory`, `ClearTelemetry`.
 - Backed by PostgreSQL via Entity Framework Core (`TelemetryContext` / `TelemetryEvent`).
+- `ClearTelemetry` uses `ExecuteDeleteAsync` for a single-roundtrip `DELETE FROM "Telemetry"`.
 
 ### IoT Telemetry service (`services/telemetry-service/`, C# / BackgroundService)
 - Simulates 20 sensors (`sensor-01` … `sensor-20`).
-- Every second, **shuffles** the sensor list and for each sensor:
+- Every second, **shuffles** the sensor list (`idList.OrderBy(_ => rng.Next())`) and for each sensor:
   1. `HashSetAsync sensor:{id} = { timestamp, value }` to Redis (origin/cache).
-  2. `BasicPublishAsync` the full `TelemetryMessage` to RabbitMQ (trigger + durability + fallback payload).
-  3. Publishes `redis_write` and `rabbit_publish` system events.
+  2. `BasicPublishAsync` the full `TelemetryMessage` to the `telemetry` queue on RabbitMQ (trigger + durability + fallback payload).
+  3. Publishes `redis_write` and `rabbit_publish` system events to the `system.events` fanout exchange via the shared `SystemEventPublisher` helper. Every backend service uses the same fanout exchange so the rest-api's `SystemEventsListener` sees a single stream regardless of producer.
 
 ### Infrastructure
 - **Redis** — origin/cache: holds the latest reading per sensor.
-- **RabbitMQ** — event bus: durable queue + system-events exchange.
+- **RabbitMQ** — event bus: durable `telemetry` queue + `system.events` fanout exchange (the latter is observability metadata, not telemetry data).
 - **PostgreSQL** — durable historical store, write-only from sql-service, read for `/history` endpoint.
+
+### Deployment (`docker-compose.yml`)
+
+All seven services run together on a single compose network. Host port → container responsibility:
+
+| Service | Host port | Notes |
+|---|---|---|
+| frontend | `4173` | Vite preview build serving the React UI |
+| rest-api | `5100` | REST + SignalR (`/telemetryHub`) + SSE (`/api/events/stream`) |
+| sql-service | `5400` → 5000 | gRPC only; HTTP/2 |
+| redis | `6379` | default |
+| rabbitmq | `5672` + `15672` | AMQP + management UI |
+| postgres | `5432` | DB `press`, user/pass `postgres/postgres` |
+| telemetry-service | — | no exposed port (background worker) |
+
+Service-to-service URIs are passed via environment variables (`RabbitMq:Url`, `Redis:Connection`, `SqlService:Url`, `Database:ConnectionString`) so docker-compose can wire them via container names. Each service waits for its dependencies with a retry loop rather than relying on healthcheck ordering, so the stack survives any startup order.
 
 ## Data flow
 
@@ -89,6 +107,11 @@ Per the spec, the data path that serves the UI is `Redis → API → UI`. Rabbit
 | **sql-service / Postgres down** | UI live feed | Persistence; `/history` endpoint | Restart; readings during downtime are lost (mitigation: outbox) |
 | **rest-api restart** | Telemetry-service keeps writing Redis + Rabbit; no message loss | UI pauses; auto-reconnects | Backlog drains from Rabbit on startup |
 | **Telemetry-service down** | Existing Redis cache stays until evicted | No new readings | Restart |
+
+## Tests and CI
+
+- `tests/restapi/`, `tests/sqlservice/`, `tests/telemetry/` — one xUnit project per backend service, referenced from `IndustrialRealTime.sln`. Currently scaffolded with placeholder unit tests; the structure is in place for per-service test growth. No dedicated integration-test project yet — end-to-end verification today is done by running the compose stack and watching the System Activity tab.
+- `.github/workflows/ci.yml` runs on every push: restores + builds the .NET solution in Release, runs `dotnet test`, runs `npm install` + `npm run build` for the frontend, validates `docker-compose config`, and builds the per-service Docker images. CI failures block the build.
 
 ## Operational signals (recommended)
 
@@ -150,27 +173,26 @@ sensors → telemetry-service → [cache write → redis]
 ## Diagram (mermaid)
 
 ```mermaid
-flowchart LR
+graph LR
     UI[React UI]
     REST[REST API]
     SQL[SQL Service]
     IOT[Telemetry Worker]
     Redis[(Redis cache)]
-    Rabbit{{RabbitMQ}}
+    Rabbit[/RabbitMQ/]
     DB[(PostgreSQL)]
 
-    UI <-->|REST| REST
-    REST -->|SignalR push| UI
-    IOT -->|HSET sensor:id| Redis
-    IOT -->|publish TelemetryMessage| Rabbit
+    UI -->|REST + SignalR| REST
+    IOT -->|HSET| Redis
+    IOT -->|publish| Rabbit
     Rabbit -.->|notify| REST
     Redis -->|HashGetAll| REST
     REST -->|gRPC SaveTelemetry| SQL
     SQL -->|INSERT| DB
-    SQL -.->|SELECT for history| REST
+    REST -->|gRPC GetHistory| SQL
 
-    classDef infra fill:#f5f5f5,stroke:#999,stroke-width:1px;
-    class Redis,Rabbit,DB infra;
-    classDef service fill:#eef,stroke:#333,stroke-width:1px;
-    class UI,REST,SQL,IOT service;
+    classDef infra fill:#f5f5f5,stroke:#999,stroke-width:1px
+    classDef service fill:#eef,stroke:#333,stroke-width:1px
+    class Redis,Rabbit,DB infra
+    class UI,REST,SQL,IOT service
 ```
