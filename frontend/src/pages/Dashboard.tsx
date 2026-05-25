@@ -8,6 +8,7 @@ import { ThemeSelector } from "@/components/ThemeSelector";
 import { ResetDataButton } from "@/components/ResetDataButton";
 import { Tabs } from "@/components/common/tabs";
 import { SensorCard } from "@/components/SensorCard";
+import { ArchitectureFlow } from "@/components/architecture/ArchitectureFlow";
 import { useTelemetry } from "@/hooks/useTelemetry";
 import { LABELS } from "@/constants";
 
@@ -83,6 +84,15 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
+        </div>
+      ),
+    },
+    {
+      id: "system-architecture",
+      label: "System Architecture",
+      content: (
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border bg-card">
+          <ArchitectureFlow />
         </div>
       ),
     },
